@@ -12,3 +12,4 @@
 -> npm install --save bycrypt
 6. create signup page view and link to client side js and connect through routes -> controllers
 7. store data in mysql database using sequelize and return response 
+8. install cors and handle correctly
