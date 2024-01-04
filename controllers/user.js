@@ -1,6 +1,7 @@
 const express = require('express');
 const bcrypt = require('bcrypt');
 const User = require('../models/user');
+const jwt = require('jsonwebtoken');
 
 exports.gethomePage = (request, response, next) => {
     response.sendFile('home.html', { root: 'views' });
@@ -40,5 +41,33 @@ exports.postsignup = async(req,res,next) => {
         }
     }catch(err){
         console.log("User Signup Error",err)
+    }
+}
+exports.getlogin = (request,response,next)=>{
+    response.sendFile('login.html',{root:'views'})
+}
+function generateToken(id){
+    return jwt.sign({userId:id},process.env.TOKEN_SECRET)
+}
+exports.postlogin = async(req,res,next) => {
+    const email = req.body.email;
+    const password = req.body.password;
+    try{
+        let user = await User.findAll({where:{email:email}})
+        if(user.length>0){
+            bcrypt.compare(password,user[0].password,(err,result) => {
+                if(err){
+                    return res.json({result:"Something went wrong",pass:false})
+                }if(result){
+                    return res.json({result:"Successfully Logged-in",pass:true,token:generateToken(user[0].id)})
+                }else{
+                    return res.json({result:"Please enter the correct details", pass:false})
+                }
+            })
+        }else{
+            res.json({result:"User not Registered, Please Signup", pass:false})
+        }
+    }catch(err){
+        console.log("User Login Error "+err)
     }
 }

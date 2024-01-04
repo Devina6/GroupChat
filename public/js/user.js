@@ -46,8 +46,10 @@ async function login(e){
         email:document.getElementById("email").value,
         password:document.getElementById("password").value
     }
+    console.log(obj)
     try{
         let res = await axios.post('/login',obj)
+        localStorage.setItem('token',res.data.token)
         let newdiv = document.createElement("div");
         if (res.data.pass){
             newdiv.className = "alert alert-success";
