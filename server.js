@@ -8,14 +8,15 @@ require('dotenv').config()
 
 const User = require('./models/user')
 const userRoutes = require('./routes/user')
+const chatRoutes = require('./routes/chat');
 
 app.use(bodyParser.urlencoded({extended:false})); 
 app.use(bodyParser.json());
 app.use(express.static('public'))
 app.use(cors({origin:'*', methods:['GET','POST']}));
 
-app.use('',userRoutes)
-
+app.use('',userRoutes);
+app.use('/chat',chatRoutes);
 
 async function initiate(){
     try{

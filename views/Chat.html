@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta http-equiv="X-UA-Compatible" content="ie=edge">
+        <!--<meta http-equiv="Content-Security-Policy" content="script-src 'self' https://cdn.jsdelivr.net;">-->
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/css/bootstrap.min.css" rel="stylesheet">
+        <link rel="stylesheet" href="/css/main.css">
+        <style>
+            .message-green{
+                background-color:darkseagreen;
+                padding: 1%;
+                width: 70%;
+                border-radius:10px;
+                 
+            }
+            .message-yellow{
+                background-color:bisque;
+                padding:1%;
+                width: 70%;
+                border-radius:10px;
+                position: relative;
+                left: 30%;
+                
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container" style="height: 100%; min-height: 80vh;">
+            <div id="main" style="height: 100%; min-height: 80vh;"><br><br>
+                <h1 class="text-center" style="font-family: Georgia, 'Times New Roman', Times, serif;">Feel Free to CONNECT</h1>
+                <div class=" card card-body border-secondary" style="height: 100%; min-height: 80vh;">  
+                    <div class="chat-display" style="position:absolute; bottom:5%; width:93%;">
+                        <div class="message-green d-flex justify-content-start">
+                            other's message                       
+                        </div>
+                        <br>
+                        <div class="message-yellow  d-flex justify-content-end ">
+                            user message
+                        </div>
+                        <form method="post">
+                            <br>
+                            <div class="d-flex justify-content-around" >
+                                <input type="text" class="form-control" id="message" placeholder="Type your message..." require>
+                                <input type="submit" class="btn btn-success btn-lg " value="Send" id="sendBtn">
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.bundle.min.js"></script>
+    </body>
+</html>

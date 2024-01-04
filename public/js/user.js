@@ -25,6 +25,7 @@ async function signup(e){
         let newdiv = document.createElement("div");
         if(res.data.pass){
         newdiv.className = "alert alert-success";
+        window.location.href = "/chat";
         }else{
             newdiv.className = "alert alert-danger";
         }
@@ -53,6 +54,7 @@ async function login(e){
         let newdiv = document.createElement("div");
         if (res.data.pass){
             newdiv.className = "alert alert-success";
+            window.location.href = "/chat";
         }else{
             newdiv.className = "alert alert-danger"
         }
