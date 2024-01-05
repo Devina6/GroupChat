@@ -1,4 +1,17 @@
 let token = localStorage.getItem('token');
+const intervalId = setInterval(async() => {
+    let parent = document.getElementById("chat-display")
+    while (parent.firstChild) {
+        parent.removeChild(parent.firstChild);
+    }
+    try{
+        const result = await axios.get('/chat/allMessage',{headers:{"userAuthorization":token}})
+        displayMessages(result);
+    }catch(err){
+        console.log("all messages getting error: "+err)
+    }
+} , "1000");
+
 document.addEventListener('DOMContentLoaded', () => {
     const sendBtn = document.querySelector('#sendBtn');
 
@@ -6,14 +19,7 @@ document.addEventListener('DOMContentLoaded', () => {
         sendBtn.addEventListener('click',sendMessage);
     }
 });
-window.onload = async() => {
-    try{
-        const result = await axios.get('/chat/allMessage',{headers:{"userAuthorization":token}})
-        displayMessages(result);
-    }catch(err){
-        console.log("all messages getting error: "+err)
-    }
-}
+
 function displayMessages(result){
     let messages = result.data.messages
 
