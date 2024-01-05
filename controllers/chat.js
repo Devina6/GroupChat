@@ -20,20 +20,33 @@ exports.postMessage = async(req,res,next) => {
     }
 }
 exports.getAllMessages = async (req,res,next) =>{
+    const page = req.query.page;
+    const chatPerPage = 5
     let id = req.user.id;
     try{
-        const messages = await Message.findAll({
+        const {count,rows} = await Message.findAndCountAll({
             attributes:['message'],
             include:[{
                 model:User,
                 attributes:['firstName']
-            }]
+            }],
+            offset:(page-1)*chatPerPage,
+            limit:chatPerPage,
+            order: [ [ 'createdAt', 'DESC' ]]
         })
         const user = await User.findOne({
             where:{id:id},
             attributes:['firstName']
         });
-        res.json({messages:messages,name:user.firstName});
+        
+        res.json({
+            messages:rows,
+            name:user.firstName,
+            currentPage: parseInt(page),
+            hasPreviousPage:chatPerPage*page < count,
+            previousPage:parseInt(page)+1,
+            lastPage: Math.ceil(count/chatPerPage)
+        });
     }catch(err){
         console.log("getting all messages error: "+err)
     }

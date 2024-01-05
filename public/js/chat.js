@@ -1,47 +1,99 @@
 let token = localStorage.getItem('token');
+//previousBtn.setAttribute('disabled', 'disabled');
+//previousBtn.removeAttribute('disabled');
+
 const intervalId = setInterval(async() => {
+    
+} ,1000);
+
+window.onload = async() => {
     let parent = document.getElementById("chat-display")
     while (parent.firstChild) {
         parent.removeChild(parent.firstChild);
     }
+    let page = 1
     try{
-        const result = await axios.get('/chat/allMessage',{headers:{"userAuthorization":token}})
-        displayMessages(result);
+        const { data: { messages,name, ...pageData } }= await axios.get(`/chat/allMessage?page=${page}`,{headers:{"userAuthorization":token}})
+        const previous = false;
+        displayMessages(messages,name,previous);
+        previousData(pageData);
     }catch(err){
         console.log("all messages getting error: "+err)
     }
-} , "1000");
-
+}
+function previousData({
+    currentPage,
+    hasPreviousPage,
+    previousPage,
+    lastPage
+}) {
+    const previousBtn = document.querySelector('#previousBtn');
+    if (hasPreviousPage) {
+        previousBtn.disabled = false;
+        previousBtn.addEventListener('click',() => previousMessage(previousPage))
+    } else {
+        previousBtn.disabled = true;
+    }
+}
 document.addEventListener('DOMContentLoaded', () => {
     const sendBtn = document.querySelector('#sendBtn');
-
+    
     if (sendBtn) {
         sendBtn.addEventListener('click',sendMessage);
     }
+    if (previousBtn) {
+        previousBtn.addEventListener('click',previousMessage);
+    }
 });
 
-function displayMessages(result){
-    let messages = result.data.messages
-
+async function displayMessages(messages,name,previous){
     let parent = document.getElementById("chat-display")
     
-    for (var i = 0; i < messages.length; i++) {
-        let newdiv = document.createElement("div");
-        let child = document.createElement("p");
-        if(result.data.name===messages[i].user.firstName){
-            newdiv.className = "message-yellow d-flex justify-content-end";
-            child.textContent = messages[i].message+' : You';
-        }else{
-            newdiv.className = "message-green d-flex justify-content-start";
-            child.textContent = messages[i].user.firstName+' : '+messages[i].message;
+    if(previous){
+        
+        console.log(messages.length)
+        for (var i = 0; i<messages.length; i++) {
+            let newdiv = document.createElement("div");
+            let child = document.createElement("p");
+            if(name===messages[i].user.firstName){
+                newdiv.className = "message-yellow d-flex justify-content-end";
+                child.textContent = messages[i].message+' : You';
+            }else{
+                newdiv.className = "message-green d-flex justify-content-start";
+                child.textContent = messages[i].user.firstName+' : '+messages[i].message;
+            }
+            
+            const lineBreak = document.createElement('br');
+            
+            newdiv.appendChild(child);
+            parent.insertBefore(lineBreak,parent.firstChild);
+            parent.insertBefore(newdiv,parent.firstChild);
         }
-        
-        const lineBreak = document.createElement('br');
-        
-        newdiv.appendChild(child);
-        parent.appendChild(newdiv);
-        parent.appendChild(lineBreak);
+    }else{
+        console.log(messages)
+        console.log(messages.length)
+        for (var i = 0; i<messages.length; i++) {
+            let newdiv = document.createElement("div");
+            let child = document.createElement("p");
+            if(name===messages[i].user.firstName){
+                newdiv.className = "message-yellow d-flex justify-content-end";
+                child.textContent = messages[i].message+' : You';
+            }else{
+                newdiv.className = "message-green d-flex justify-content-start";
+                child.textContent = messages[i].user.firstName+' : '+messages[i].message;
+            }
+            
+            const lineBreak = document.createElement('br');
+            
+            newdiv.appendChild(child);
+            parent.insertBefore(lineBreak,parent.firstChild);
+            parent.insertBefore(newdiv,parent.firstChild);
+            
+        }    
+    
     }
+   
+    
 }
 
 async function sendMessage(e){
@@ -57,4 +109,16 @@ async function sendMessage(e){
     catch(err){
         console.log("Client-side message sending error: "+err)
     } 
+}
+async function previousMessage(page){
+    try{
+        const { data: { messages,name, ...pageData } }= await axios.get(`/chat/allMessage?page=${page}`,{headers:{"userAuthorization":token}})
+        const previous = true;
+        displayMessages(messages,name,previous);
+        previousData(pageData);
+    }catch(err){
+        console.log("all messages getting error: "+err)
+    }
+    
+    
 }
