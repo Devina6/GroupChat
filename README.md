@@ -16,3 +16,4 @@
 9. create front end functionality for login
 10. create chat display front end 
 11. authenticate user and post message to backend to store in database 
+12. get all (everyone) messages from the database
