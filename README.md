@@ -14,3 +14,5 @@
 7. store data in mysql database using sequelize and return response 
 8. install cors and handle correctly
 9. create front end functionality for login
+10. create chat display front end 
+11. authenticate user and post message to backend to store in database 

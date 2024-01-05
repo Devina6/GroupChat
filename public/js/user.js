@@ -25,7 +25,7 @@ async function signup(e){
         let newdiv = document.createElement("div");
         if(res.data.pass){
         newdiv.className = "alert alert-success";
-        window.location.href = "/chat";
+        window.location.href = "/login";
         }else{
             newdiv.className = "alert alert-danger";
         }
