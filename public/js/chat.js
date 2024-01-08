@@ -3,14 +3,23 @@ let token = localStorage.getItem('token');
 //previousBtn.removeAttribute('disabled');
 
 const intervalId = setInterval(async() => {
-    
-} ,1000);
-
-window.onload = async() => {
     let parent = document.getElementById("chat-display")
     while (parent.firstChild) {
         parent.removeChild(parent.firstChild);
     }
+    let page = 1
+    try{
+        const { data: { messages,name, ...pageData } }= await axios.get(`/chat/allMessage?page=${page}`,{headers:{"userAuthorization":token}})
+        const previous = false;
+        displayMessages(messages,name,previous);
+        previousData(pageData);
+    }catch(err){
+        console.log("all messages getting error: "+err)
+    }
+} ,90000);
+
+window.onload = async() => {
+    let parent = document.getElementById("chat-display")
     let page = 1
     try{
         const { data: { messages,name, ...pageData } }= await axios.get(`/chat/allMessage?page=${page}`,{headers:{"userAuthorization":token}})
@@ -50,8 +59,6 @@ async function displayMessages(messages,name,previous){
     let parent = document.getElementById("chat-display")
     
     if(previous){
-        
-        console.log(messages.length)
         for (var i = 0; i<messages.length; i++) {
             let newdiv = document.createElement("div");
             let child = document.createElement("p");
@@ -70,8 +77,6 @@ async function displayMessages(messages,name,previous){
             parent.insertBefore(newdiv,parent.firstChild);
         }
     }else{
-        console.log(messages)
-        console.log(messages.length)
         for (var i = 0; i<messages.length; i++) {
             let newdiv = document.createElement("div");
             let child = document.createElement("p");

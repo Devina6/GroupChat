@@ -6,48 +6,28 @@
         <!--<meta http-equiv="Content-Security-Policy" content="script-src 'self' https://cdn.jsdelivr.net;">-->
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/css/bootstrap.min.css" rel="stylesheet">
         <link rel="stylesheet" href="/css/main.css">
-        <style>
-            .message-green{
-                background-color:darkseagreen;
-                padding: 1%;
-                width: 70%;
-                border-radius:10px;
-                 
-            }
-            .message-yellow{
-                background-color:bisque;
-                padding:1%;
-                width: 70%;
-                border-radius:10px;
-                position: relative;
-                left: 30%;
-                
-            }
-        </style>
     </head>
     <body>
         <div class="container" >
             <div id="main"><br><br>
                 <h1 class="text-center" style="font-family: Georgia, 'Times New Roman', Times, serif;">Feel Free to CONNECT</h1>
-                <div class=" card card-body border-secondary chat" >  
-                        <div class="message-green d-flex justify-content-start">
-                            other's message                       
-                        </div>
-                        <br>
-                        <div class="message-yellow d-flex justify-content-end ">
-                            user message
-                        </div>
-                        <form method="post">
-                            <br>
-                            <div class="d-flex justify-content-around" >
-                                <input type="text" class="form-control" id="message" placeholder="Type your message..." require>
-                                <input type="submit" class="btn btn-success btn-lg " value="Send" id="sendBtn">
-                            </div>
-                        </form>
+                <div class=" card card-body border-secondary chat" >
+                    <input type="submit" class="btn btn-outline-secondary btn-lg " value="Load Previous Messages" id="previousBtn">
+                    <br><br>
+                    <div id="chat-display">
                     </div>
+                    <br>
+                    <form method="post">
+                        <div class="d-flex justify-content-around" >
+                            <input type="text" class="form-control" id="message" placeholder="Type your message..." require>
+                            <input type="submit" class="btn btn-success btn-lg " value="Send" id="sendBtn">
+                        </div>
+                    </form>
                 </div>
             </div>
         </div>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.19.0/axios.min.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.bundle.min.js"></script>
+        <script src="/js/chat.js"></script> 
     </body>
 </html>
