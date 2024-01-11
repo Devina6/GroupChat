@@ -8,21 +8,33 @@
         <link rel="stylesheet" href="/css/main.css">
     </head>
     <body>
-        <div class="container" >
+        <div class="container">
             <div id="main"><br><br>
-                <h1 class="text-center" style="font-family: Georgia, 'Times New Roman', Times, serif;">Feel Free to CONNECT</h1>
-                <div class=" card card-body border-secondary chat" >
-                    <input type="submit" class="btn btn-outline-secondary btn-lg " value="Load Previous Messages" id="previousBtn">
-                    <br><br>
-                    <div id="chat-display">
-                    </div>
-                    <br>
-                    <form method="post">
-                        <div class="d-flex justify-content-around" >
-                            <input type="text" class="form-control" id="message" placeholder="Type your message..." require>
-                            <input type="submit" class="btn btn-success btn-lg " value="Send" id="sendBtn">
+                <div class="row">
+                    <div class="col-4">
+                        <div class=" card card-body border-secondary chat" >
+                            <h5 class="text-center" style="font-family: Georgia, 'Times New Roman', Times, serif;">Select or create your own groups to join</h5>
+                            <div id="groups">
+                            </div>
                         </div>
-                    </form>
+                    </div>
+                    <div class="col-8">
+                        <h1 class="text-center" style="font-family: Georgia, 'Times New Roman', Times, serif;">Feel Free to CONNECT</h1>
+                        <div class=" card card-body border-secondary chat" >
+                            <h5 class="text-center" style="font-family: Georgia, 'Times New Roman', Times, serif;" id="groupName"></h5>
+                            <input type="submit" class="btn btn-outline-secondary btn-lg " value="Load Previous Messages" id="previousBtn" style="visibility: hidden;">
+                            <br><br>
+                            <div id="chat-display">
+                            </div>
+                            <br>
+                            <form method="post">
+                                <div class="d-flex justify-content-around" >
+                                    <input type="text" class="form-control" id="message" placeholder="Type your message..." require>
+                                    <input type="submit" class="btn btn-success btn-lg " value="Send" id="sendBtn">
+                                </div>
+                            </form>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

@@ -17,3 +17,5 @@
 10. create chat display front end 
 11. authenticate user and post message to backend to store in database 
 12. get all (everyone) messages from the database
+13. on signup assign everyone to a common group
+14. display all groups the particular user is part of and allow to read and write messages only to those groups

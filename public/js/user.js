@@ -50,7 +50,7 @@ async function login(e){
     console.log(obj)
     try{
         let res = await axios.post('/login',obj)
-        localStorage.setItem('token',res.data.token)
+        localStorage.setItem('userToken',res.data.userToken)
         let newdiv = document.createElement("div");
         if (res.data.pass){
             newdiv.className = "alert alert-success";

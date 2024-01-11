@@ -8,9 +8,12 @@ require('dotenv').config()
 
 const User = require('./models/user');
 const Message = require('./models/message');
+const Group = require('./models/group');
+const GroupUser = require('./models/groupUser');
 
 const userRoutes = require('./routes/user');
 const chatRoutes = require('./routes/chat');
+
 
 app.use(bodyParser.urlencoded({extended:false})); 
 app.use(bodyParser.json());
@@ -22,16 +25,20 @@ app.use('/chat',chatRoutes);
 
 User.hasMany(Message);
 Message.belongsTo(User);
+User.belongsToMany(Group, { through: GroupUser, foreignKey: 'userId' });
+Group.belongsToMany(User, { through: GroupUser, foreignKey: 'groupId' });
+Group.hasMany(Message);
+Message.belongsTo(Group)
 
 async function initiate(){
     try{
         await sequelize
-        .sync()//.sync({force:true})
+        .sync()
+        //.sync({force:true})
         .then(result => {
             app.listen(process.env.PORT);
         })
-    }
-        catch(err){ 
+    }catch(err){ 
             console.log(err);
         }
     }

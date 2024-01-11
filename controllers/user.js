@@ -1,6 +1,8 @@
 const express = require('express');
 const bcrypt = require('bcrypt');
 const User = require('../models/user');
+const Group = require('../models/group');
+const GroupUser = require('../models/groupUser')
 const jwt = require('jsonwebtoken');
 
 exports.gethomePage = (request, response, next) => {
@@ -13,11 +15,7 @@ exports.getsignup = (request,response,next)=>{
     response.sendFile('signup.html',{root:'views'})
 }
 exports.postsignup = async(req,res,next) => {
-    const firstName = req.body.firstName;
-    const lastName = req.body.lastName;
-    const email = req.body.email;
-    const phone = req.body.phone;
-    const password = req.body.password;
+    const { firstName, lastName, email, phone, password } = req.body;
     try{
         let userExist = await User.findAll({where:{email:email,phone:phone}})
         if(userExist.length>0){
@@ -35,6 +33,11 @@ exports.postsignup = async(req,res,next) => {
                             phone:phone,
                             password:hash
                     })
+                    const defaultGroup = await Group.findOne({ where: { name: 'Common' } });
+                    const groupUser = await GroupUser.create({
+                        userId: user.id,
+                        groupId: defaultGroup.id,
+                    });
                     res.json({result:"Successfully Registered!",pass:true})
                 }
             })
@@ -46,9 +49,10 @@ exports.postsignup = async(req,res,next) => {
 exports.getlogin = (request,response,next)=>{
     response.sendFile('login.html',{root:'views'})
 }
-function generateToken(id){
-    return jwt.sign({userId:id},process.env.TOKEN_SECRET)
+function generateUserToken(id){
+    return jwt.sign({userId:id},process.env.USER_TOKEN_SECRET)
 }
+
 exports.postlogin = async(req,res,next) => {
     const email = req.body.email;
     const password = req.body.password;
@@ -59,7 +63,7 @@ exports.postlogin = async(req,res,next) => {
                 if(err){
                     return res.json({result:"Something went wrong",pass:false})
                 }if(result){
-                    return res.json({result:"Successfully Logged-in",pass:true,token:generateToken(user[0].id)})
+                    return res.json({result:"Successfully Logged-in",pass:true,userToken:generateUserToken(user[0].id)})
                 }else{
                     return res.json({result:"Please enter the correct details", pass:false})
                 }
