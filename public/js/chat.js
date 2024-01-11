@@ -4,6 +4,7 @@ document.addEventListener('DOMContentLoaded', async() => {
     try {
         let result = await axios.get('/chat/groups', { headers: { "userAuthorization": userToken } });
         let groupParent = document.getElementById("groups");
+        
         let groups = result.data.groups;
         let buttons =[];
         for (var i = 0; i < groups.length; i++) {
@@ -19,6 +20,11 @@ document.addEventListener('DOMContentLoaded', async() => {
             button.push(newBtn.value)
             buttons.push(button);
             groupParent.appendChild(newBtn);
+            let lineBreak1 = document.createElement('br');
+            let lineBreak2 = document.createElement('br');
+            groupParent.appendChild(lineBreak1);
+            groupParent.appendChild(lineBreak2);
+            
         }
         groupButtons(buttons);
       } catch (err) {
@@ -31,6 +37,7 @@ document.addEventListener('DOMContentLoaded', async() => {
 
 function groupButtons(buttons){
     const addClickEvent = (button) => {
+
         let buttonElement = document.getElementById(button[1]);
         if(buttonElement) {
             buttonElement.addEventListener('click', () => groupChats(button));
@@ -42,20 +49,22 @@ function groupButtons(buttons){
 async function groupChats(group){
     let parent = document.getElementById("chat-display")
     let page = 1
-    let groupToken = group[0]
+    let Token = group[0]
+    localStorage.setItem('groupToken', Token)
+    let groupToken = localStorage.getItem('groupToken');
     try{
         let parent = document.getElementById("chat-display")
         while (parent.firstChild) {
             parent.removeChild(parent.firstChild);
         }
-        const { data: { messages,username,groupname,pass, ...pageData } }= await axios.get(`/chat/allMessage?page=${page}`,{headers:{"userAuthorization":userToken,"groupAuthorization":groupToken}})
+
+        const { data: { messages,username,pass,result, ...pageData } }= await axios.get(`/chat/allMessage?page=${page}`,{headers:{"userAuthorization":userToken,"groupAuthorization":groupToken}})
         if(pass){
             let groupPresent = document.getElementById("groupName");
-            groupPresent.textContent = group[1]
+            groupPresent.textContent = group[1];
             if(messages){
                 displayMessages(messages,username);
-                let data = Object.assign(pageData, { groupToken:groupToken });
-                previousData(data);
+                previousData(pageData);
             }else{
                 const previousBtn = document.querySelector('#previousBtn');
                 previousBtn.disabled = true;
@@ -72,27 +81,29 @@ function previousData({
     hasPreviousPage,
     previousPage,
     lastPage,
-    groupToken
 }) {
     const previousBtn = document.querySelector('#previousBtn');
     if (hasPreviousPage) {
         previousBtn.style.visibility = 'visible';
-        previousBtn.addEventListener('click',() => previousMessage(previousPage,groupToken))
+        previousBtn.addEventListener('click',() => previousMessage(previousPage))
     } else {
         previousBtn.style.visibility = 'hidden';
     }
 }
 document.addEventListener('DOMContentLoaded', () => {
     const sendBtn = document.querySelector('#sendBtn');
-    
+    const groupBtn = document.querySelector('#groupBtn')
     if (sendBtn) {
         sendBtn.addEventListener('click',sendMessage);
+    }
+    if(groupBtn){
+        groupBtn.addEventListener('click',newGroup);
     }
 });
 
 async function displayMessages(messages,name,previous){
     let parent = document.getElementById("chat-display")
-
+    
     for (var i = 0; i<messages.length; i++) {
         let newdiv = document.createElement("div");
         let child = document.createElement("p");
@@ -113,26 +124,37 @@ async function displayMessages(messages,name,previous){
 
 async function sendMessage(e){
     e.preventDefault();
+    let groupToken = localStorage.getItem('groupToken');
     let obj = {
         message:document.getElementById("message").value
     }
     try{
         const result = await axios.post('/chat/sendMessage',obj,{headers:{"userAuthorization":userToken,"groupAuthorization":groupToken}})
         groupChats(result.data.group)
-    }
-    catch(err){
+    }catch(err){
         console.log("Client-side message sending error: "+err)
     } 
 }
-async function previousMessage(page,groupToken){
+async function previousMessage(page){
+    let groupToken = localStorage.getItem('groupToken');
     try{
-        const { data: { messages,username,groupname,pass, ...pageData } }= await axios.get(`/chat/allMessage?page=${page}`,{headers:{"userAuthorization":userToken,"groupAuthorization":groupToken}})
+        const { data: { messages,username,groupname,pass,result, ...pageData } }= await axios.get(`/chat/allMessage?page=${page}`,{headers:{"userAuthorization":userToken,"groupAuthorization":groupToken}})
         displayMessages(messages,username);
-        let data = Object.assign(pageData, { groupToken:groupToken });
-        previousData(data);
+        previousData(pageData);
     }catch(err){
         console.log("all messages getting error: "+err)
+    } 
+}
+
+async function newGroup(e){
+    e.preventDefault();
+    let obj = {
+        name:document.getElementById("newGroupName").value
     }
-    
-    
+    try{
+        const result = await axios.post('/chat/newGroup',obj,{headers:{"userAuthorization":userToken}})
+
+    }catch(err){
+        console.log("New Group creation error: "+err)
+    }
 }

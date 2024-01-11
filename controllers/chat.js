@@ -5,6 +5,7 @@ const Message = require('../models/message');
 const Group = require('../models/group');
 const GroupUser = require('../models/groupUser');
 const jwt = require('jsonwebtoken');
+const sequelize = require('../util/database');
 
 function generateGroupToken(id){
     return jwt.sign({groupId:id},process.env.GROUP_TOKEN_SECRET)
@@ -85,7 +86,8 @@ exports.getAllMessages = async (req,res,next) =>{
                     currentPage: parseInt(page),
                     hasPreviousPage:chatPerPage*page < count,
                     previousPage:parseInt(page)+1,
-                    lastPage: Math.ceil(count/chatPerPage)
+                    lastPage: Math.ceil(count/chatPerPage),
+                    result:"messages retrived"
                 })
             }else{
                 const groupName = await Group.findAll({
@@ -93,7 +95,7 @@ exports.getAllMessages = async (req,res,next) =>{
                     attributes:['name']
                 })
                 let name = groupName[0].dataValues.name;
-                res.json({pass:true,groupname:name})
+                res.json({pass:true,groupname:name,result:"Send messages in group"})
             }
         }else{
             res.json({pass:false,result:"You must join the group first"})
@@ -101,4 +103,25 @@ exports.getAllMessages = async (req,res,next) =>{
     }catch(err){
         console.log("getting all messages error: "+err)
     }
+}
+
+exports.newGroup = async (req,res,next) => {
+    let userid = req.user.id;
+    const name = req.body.name
+    sequelize.transaction(async(t) => {
+        try{
+            const groupNew = await Group.create({
+                name:name
+            },
+            {transaction:t})
+            const newgroup = await Group.findOne({ where: { name: name } ,transaction:t});
+            const groupUser = await GroupUser.create({
+                                                userId: userid,
+                                                groupId: newgroup.id,
+                                                },{transaction:t});
+        }catch(err){
+            await t.rollback();
+            console.log("New Group Creation Error: "+err)
+        }
+    })   
 }
