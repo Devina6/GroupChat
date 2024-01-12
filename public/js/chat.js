@@ -21,9 +21,7 @@ document.addEventListener('DOMContentLoaded', async() => {
             buttons.push(button);
             groupParent.appendChild(newBtn);
             let lineBreak1 = document.createElement('br');
-            let lineBreak2 = document.createElement('br');
             groupParent.appendChild(lineBreak1);
-            groupParent.appendChild(lineBreak2);
             
         }
         groupButtons(buttons);
@@ -63,6 +61,8 @@ async function groupChats(group){
             let groupPresent = document.getElementById("groupName");
             groupPresent.textContent = group[1];
             if(messages){
+                document.getElementById("message").disabled = false;
+                document.getElementById("sendBtn").disabled = false;
                 displayMessages(messages,username);
                 previousData(pageData);
             }else{
@@ -148,12 +148,16 @@ async function previousMessage(page){
 
 async function newGroup(e){
     e.preventDefault();
+    let name = document.getElementById("newGroupName").value
+    var myModal = document.getElementById('staticBackdrop');
     let obj = {
-        name:document.getElementById("newGroupName").value
+        name:name
     }
     try{
         const result = await axios.post('/chat/newGroup',obj,{headers:{"userAuthorization":userToken}})
-
+        if(result.data.pass){
+            window.location.reload();
+        }
     }catch(err){
         console.log("New Group creation error: "+err)
     }

@@ -110,15 +110,13 @@ exports.newGroup = async (req,res,next) => {
     const name = req.body.name
     sequelize.transaction(async(t) => {
         try{
-            const groupNew = await Group.create({
-                name:name
-            },
-            {transaction:t})
-            const newgroup = await Group.findOne({ where: { name: name } ,transaction:t});
+            const groupNew = await Group.create({name:name},{transaction:t})
+            const newgroup = await Group.findOne({ where: { name: name },transaction:t});
             const groupUser = await GroupUser.create({
                                                 userId: userid,
                                                 groupId: newgroup.id,
                                                 },{transaction:t});
+            res.json({pass:true,newgroup:generateGroupToken(newgroup.id)})
         }catch(err){
             await t.rollback();
             console.log("New Group Creation Error: "+err)

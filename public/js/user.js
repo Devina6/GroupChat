@@ -47,7 +47,6 @@ async function login(e){
         email:document.getElementById("email").value,
         password:document.getElementById("password").value
     }
-    console.log(obj)
     try{
         let res = await axios.post('/login',obj)
         localStorage.setItem('userToken',res.data.userToken)
