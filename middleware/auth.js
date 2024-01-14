@@ -24,8 +24,9 @@ exports.groupAuthenticate = async(req,res,next) => {
             where:{userId:userid,groupId:group.groupId}
         })
         if(Group.length>0){
-            req.group = Group[0].dataValues
+            req.group = group.groupId
         }
+
         next();
     }catch(err){
         console.log("Group Authentication error: "+err);

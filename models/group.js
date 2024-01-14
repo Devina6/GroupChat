@@ -15,14 +15,15 @@ const Group = sequelize.define('group',{
     }
 })
 const createDefaultGroup = async () => {
-    const defaultGroup = await Group.findOne({ where: { name: 'Common' } });
+  const defaultGroup = await Group.findOne({ where: { name: 'Common' } });
   
-    if (!defaultGroup) {
-      await Group.create({
-        name: 'Common',
-      });
-    }
-  };
-  
-  createDefaultGroup();
+  if (!defaultGroup) {
+    await Group.create({
+      name: 'Common',
+    });
+  }
+};
+
+createDefaultGroup();
+
 module.exports = Group;

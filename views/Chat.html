@@ -11,7 +11,7 @@
         <div class="container">
             <div id="main"><br><br>
                 <div class="row">
-                    <div class="col-4">
+                    <div class="col-3">
                         <div class=" card card-body border-secondary chat" >
                             <h5 class="text-center" style="font-family: Georgia, 'Times New Roman', Times, serif;">Select or create your own groups to join</h5>
                             <div id="groups">
@@ -19,7 +19,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="col-8">
+                    <div class="col-6">
                         <h1 class="text-center" style="font-family: Georgia, 'Times New Roman', Times, serif;">Feel Free to CONNECT</h1>
                         <div class=" card card-body border-secondary chat" >
                             <h5 class="text-center" style="font-family: Georgia, 'Times New Roman', Times, serif;" id="groupName"></h5>
@@ -34,6 +34,13 @@
                                     <input type="submit" class="btn btn-success btn-lg " value="Send" id="sendBtn" disabled>
                                 </div>
                             </form>
+                        </div>
+                    </div>
+                    <div class="col-3" id="users" style="visibility: hidden;">
+                        <div class=" card card-body border-secondary chat" >
+                            <h5 class="text-center" style="font-family: Georgia, 'Times New Roman', Times, serif;">Add Members to group</h5>
+                            <ul id="nonMembers">
+                            </ul>
                         </div>
                     </div>
                 </div>

@@ -6,29 +6,43 @@ const Group = require('../models/group');
 const GroupUser = require('../models/groupUser');
 const jwt = require('jsonwebtoken');
 const sequelize = require('../util/database');
+const Sequelize = require('sequelize');
+const { Op } = require('sequelize');
 
 function generateGroupToken(id){
     return jwt.sign({groupId:id},process.env.GROUP_TOKEN_SECRET)
 }
+
 exports.getGroups = async (req,res,next) =>{
     try{
         let userid = req.user.id;
-        let user = await User.findByPk(userid, 
-            {
-                include: [{
-                    model: Group,
-                    through: GroupUser, 
-                }],
-            })
-        const dbgroups = user.groups;
-        let groups=[];
-        for(var i=0;i<dbgroups.length;i++){
-            let id = generateGroupToken(dbgroups[i].dataValues.id)
-            let name = dbgroups[i].dataValues.name
-            let group = [id, name]
-            groups.push(group);            
-        }
-        res.json({groups:groups});
+        let user = await User.findByPk(userid,{
+            include: [{
+                model: Group,
+                through: {
+                    model: GroupUser,
+                    attributes:['isAdmin'],
+                },
+                as:'groups'
+            }],
+        })
+        const userGroups = user.groups || [];
+let groups = [];
+
+for (let i = 0; i < userGroups.length; i++) {
+    let group = userGroups[i].dataValues;
+    let id = generateGroupToken(group.id);
+    let name = group.name;
+    let isAdmin = group.groupuser ? group.groupuser.isAdmin : false; 
+
+    groups.push({
+        id,
+        name,
+        isAdmin,
+    });
+}
+
+res.json({ groups });
     }catch(err){
         console.log("Error in fetching all groups: "+err);
     }
@@ -40,23 +54,47 @@ exports.getChat = (req, res, next) => {
 exports.postMessage = async(req,res,next) => {
     let message = req.body.message;
     let userid = req.user.id;
-    let groupid = req.group.groupId;
+    let groupid = req.group;
     try{
         const result = await Message.create({
             message:message,
             userId:userid,
             groupId:groupid
         })
-        res.json({group:groupid});
+        let group=[]
+        group.push(generateGroupToken(groupid))
+        res.json({group:group});
     }catch(err){
         console.log("Message storing error: "+err)
+    }
+}
+exports.newMember = async(req,res,next) =>{
+    let member = req.body;
+    let groupid = req.group;
+    try{
+        const user = await User.findOne({
+            where: { email: member.email }
+        });
+        
+        const group = await Group.findByPk(groupid);
+        
+        if (user && group) {
+            const newMember = await GroupUser.create({
+                userId: user.id,
+                groupId: group.id,
+                isAdmin: false 
+            });
+        }
+            res.json({ message: 'User added as a non-admin member to the group successfully', pass: true});
+    }catch(err){
+        console.log("New Member add error: "+err)
     }
 }
 exports.getAllMessages = async (req,res,next) =>{
     const page = req.query.page;
     const chatPerPage = 5
     let userid = req.user.id;
-    let groupid = req.group.id
+    let groupid = req.group
     try{ 
         const group = await GroupUser.findAll({
             where:{userId:userid,groupId:groupid},
@@ -94,7 +132,7 @@ exports.getAllMessages = async (req,res,next) =>{
                     where:{id:groupid},
                     attributes:['name']
                 })
-                let name = groupName[0].dataValues.name;
+                //let name = groupName[0].dataValues.name;
                 res.json({pass:true,groupname:name,result:"Send messages in group"})
             }
         }else{
@@ -111,15 +149,41 @@ exports.newGroup = async (req,res,next) => {
     sequelize.transaction(async(t) => {
         try{
             const groupNew = await Group.create({name:name},{transaction:t})
-            const newgroup = await Group.findOne({ where: { name: name },transaction:t});
-            const groupUser = await GroupUser.create({
-                                                userId: userid,
-                                                groupId: newgroup.id,
-                                                },{transaction:t});
-            res.json({pass:true,newgroup:generateGroupToken(newgroup.id)})
+            const groupuser = await GroupUser.create({
+                userId: userid,
+                groupId: groupNew.id,
+                isAdmin: true
+            },{transaction:t});
+            //await t.commit();
+            res.json({pass:true,newgroup:generateGroupToken(groupNew.id)})
         }catch(err){
             await t.rollback();
             console.log("New Group Creation Error: "+err)
         }
     })   
+}
+exports.userList = async(req,res,next) => {
+    let userid = req.user.id;
+    let groupid = req.group;
+    try{
+        const users = await GroupUser.findAll({
+            attributes:['userId'],
+            where:{
+                groupId:groupid
+            },
+            raw:true
+        })
+        const notUsers = await User.findAll({
+            attributes:['firstName','email','id'],
+            where:{
+                id:{
+                    [Op.notIn]:users.map(user => user.userId)
+                }
+            },
+            raw:true
+        })
+        res.json({users:notUsers})
+    }catch(err){
+        console.log("Getting users error: "+err)
+    }
 }

@@ -5,23 +5,26 @@ document.addEventListener('DOMContentLoaded', async() => {
         let result = await axios.get('/chat/groups', { headers: { "userAuthorization": userToken } });
         let groupParent = document.getElementById("groups");
         
-        let groups = result.data.groups;
+        let group = result.data.groups;
         let buttons =[];
-        for (var i = 0; i < groups.length; i++) {
+        for (var i = 0; i < group.length; i++) {
+
             let newBtn = document.createElement("input");
             newBtn.type = 'submit';
             newBtn.className = "btn btn-outline-dark";
-            
+    
             let button =[];
-            newBtn.setAttribute('data-alphanumeric',`${groups[i][0]}`);
-            newBtn.id = `${groups[i][1]}`;
-            newBtn.value = `${groups[i][1]}`;
-            button.push(`${groups[i][0]}`);
+            newBtn.setAttribute('data-alphanumeric',`${group[i].id}`);
+            newBtn.id = `${group[i].name}`;
+            newBtn.value = `${group[i].name}`;
+            button.push(group[i].id);
             button.push(newBtn.value)
+            button.push(group[i].isAdmin)
             buttons.push(button);
             groupParent.appendChild(newBtn);
             let lineBreak1 = document.createElement('br');
             groupParent.appendChild(lineBreak1);
+            
             
         }
         groupButtons(buttons);
@@ -47,15 +50,40 @@ function groupButtons(buttons){
 async function groupChats(group){
     let parent = document.getElementById("chat-display")
     let page = 1
-    let Token = group[0]
-    localStorage.setItem('groupToken', Token)
-    let groupToken = localStorage.getItem('groupToken');
+    let groupToken = group[0]
+    localStorage.setItem('groupToken', groupToken)
     try{
+        let sendBtn = document.getElementById("sendBtn")
+        let messageText = document.getElementById("message")
+        sendBtn.disabled = false;
+        messageText.disabled = false;
         let parent = document.getElementById("chat-display")
         while (parent.firstChild) {
             parent.removeChild(parent.firstChild);
         }
+        let userList = document.getElementById("users")
+        if(group[2]){
+            userList.style.visibility = 'visible';
+            const result = await axios.get('/chat/users',{headers:{"userAuthorization":userToken,"groupAuthorization":groupToken}})
+            let users = result.data.users
+            
+            let parent = document.getElementById('nonMembers')
+            while (parent.firstChild) {
+                parent.removeChild(parent.firstChild);
+            }
+            for(var j=0;j<users.length;j++){
+                let child = document.createElement('li');
+                let member ={email:users[j].email,id:users[j].id}
+                child.setAttribute('id',users[j].id);
+                child.className = "btn btn-primary btn-sm"
+                child.textContent = users[j].firstName+" - "+users[j].email;
+                parent.append(child);
 
+                child.addEventListener('click',() => addMember(member))
+            }
+        }else{
+            userList.style.visibility = 'hidden';
+        }
         const { data: { messages,username,pass,result, ...pageData } }= await axios.get(`/chat/allMessage?page=${page}`,{headers:{"userAuthorization":userToken,"groupAuthorization":groupToken}})
         if(pass){
             let groupPresent = document.getElementById("groupName");
@@ -74,6 +102,18 @@ async function groupChats(group){
         }
     }catch(err){
         console.log("all messages getting error: "+err)
+    }
+}
+async function addMember(member){
+    let groupToken = localStorage.getItem('groupToken');
+    try{
+        let result = await axios.post('/chat/addMember',member,{headers:{"userAuthorization":userToken,"groupAuthorization":groupToken}})
+        if(result.data.pass){
+            let element = document.getElementById(member.id);
+            element.remove();
+        }
+    }catch(err){
+        console.log("Adding member Error: "+err)
     }
 }
 function previousData({
