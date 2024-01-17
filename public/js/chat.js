@@ -1,6 +1,15 @@
+const socket = io();
 let userToken = localStorage.getItem('userToken');
 
 document.addEventListener('DOMContentLoaded', async() => {
+    const sendBtn = document.querySelector('#sendBtn');
+    const groupBtn = document.querySelector('#groupBtn')
+    if (sendBtn) {
+        sendBtn.addEventListener('click',sendMessage);
+    }
+    if(groupBtn){
+        groupBtn.addEventListener('click',newGroup);
+    }
     try {
         let result = await axios.get('/chat/groups', { headers: { "userAuthorization": userToken } });
         let groupParent = document.getElementById("groups");
@@ -32,9 +41,6 @@ document.addEventListener('DOMContentLoaded', async() => {
         console.log("all groups getting error: " + err);
       }
   });
-/*const intervalId = setInterval(async() => {
-    
-} ,1000);*/
 
 function groupButtons(buttons){
     const addClickEvent = (button) => {
@@ -91,7 +97,10 @@ async function groupChats(group){
             if(messages){
                 document.getElementById("message").disabled = false;
                 document.getElementById("sendBtn").disabled = false;
-                displayMessages(messages,username);
+                let latest = false;
+                for(var i=0;i<messages.length;i++){
+                    displayMessages(messages[i],username,latest);
+                }
                 previousData(pageData);
             }else{
                 const previousBtn = document.querySelector('#previousBtn');
@@ -100,10 +109,12 @@ async function groupChats(group){
         }else{
             alert(result)
         }
+        socket.emit('group token',groupToken)
     }catch(err){
         console.log("all messages getting error: "+err)
     }
 }
+
 async function addMember(member){
     let groupToken = localStorage.getItem('groupToken');
     try{
@@ -116,6 +127,7 @@ async function addMember(member){
         console.log("Adding member Error: "+err)
     }
 }
+
 function previousData({
     currentPage,
     hasPreviousPage,
@@ -130,36 +142,28 @@ function previousData({
         previousBtn.style.visibility = 'hidden';
     }
 }
-document.addEventListener('DOMContentLoaded', () => {
-    const sendBtn = document.querySelector('#sendBtn');
-    const groupBtn = document.querySelector('#groupBtn')
-    if (sendBtn) {
-        sendBtn.addEventListener('click',sendMessage);
-    }
-    if(groupBtn){
-        groupBtn.addEventListener('click',newGroup);
-    }
-});
 
-async function displayMessages(messages,name,previous){
+async function displayMessages(message,username,latest){
     let parent = document.getElementById("chat-display")
-    
-    for (var i = 0; i<messages.length; i++) {
-        let newdiv = document.createElement("div");
-        let child = document.createElement("p");
-        if(name===messages[i].user.firstName){
-            newdiv.className = "message-yellow d-flex justify-content-end";
-            child.textContent = messages[i].message+' : You';
-        }else{
-            newdiv.className = "message-green d-flex justify-content-start";
-            child.textContent = messages[i].user.firstName+' : '+messages[i].message;
-        }
-        const lineBreak = document.createElement('br');
-                
-        newdiv.appendChild(child);
+    let newdiv = document.createElement("div");
+    let child = document.createElement("p");
+    if(username===message.name){
+        newdiv.className = "message-yellow d-flex justify-content-end";
+        child.textContent = message.message+' : You';
+    }else{
+        newdiv.className = "message-green d-flex justify-content-start";
+        child.textContent = message.name+' : '+message.message;
+    }
+    const lineBreak = document.createElement('br');
+    newdiv.appendChild(child);
+    if(latest){
+        parent.appendChild(lineBreak);
+        parent.appendChild(newdiv);
+    }else{
         parent.insertBefore(lineBreak,parent.firstChild);
         parent.insertBefore(newdiv,parent.firstChild);
-    }    
+    }       
+        
 }    
 
 async function sendMessage(e){
@@ -169,17 +173,40 @@ async function sendMessage(e){
         message:document.getElementById("message").value
     }
     try{
+        if(obj.message){
+            document.getElementById("message").value = '';
+        }
         const result = await axios.post('/chat/sendMessage',obj,{headers:{"userAuthorization":userToken,"groupAuthorization":groupToken}})
-        groupChats(result.data.group)
+        const msgId = result.data.id;
+        socket.emit('chatMessage',(groupToken));
     }catch(err){
         console.log("Client-side message sending error: "+err)
     } 
 }
+socket.on('receive', async(data)=>{
+    try{
+        let groupToken = localStorage.getItem('groupToken');
+        let obj = {
+            groupToken:groupToken,
+            data:data,
+        }
+        const newMessage = await axios.post('/chat/latestMessage',obj,{headers:{"userAuthorization":userToken,"groupAuthorization":groupToken}})
+        let latestMessage = newMessage.data.messages;
+        let latest = true;
+        let username = newMessage.data.username;
+        displayMessages(latestMessage,latestMessage.name,latest);
+            
+    }catch(err){
+        console.log('latest message error: '+err)
+    }
+})
+
 async function previousMessage(page){
     let groupToken = localStorage.getItem('groupToken');
     try{
         const { data: { messages,username,groupname,pass,result, ...pageData } }= await axios.get(`/chat/allMessage?page=${page}`,{headers:{"userAuthorization":userToken,"groupAuthorization":groupToken}})
-        displayMessages(messages,username);
+        let latest = false;
+        displayMessages(messages,username,latest);
         previousData(pageData);
     }catch(err){
         console.log("all messages getting error: "+err)

@@ -1,5 +1,10 @@
-const express = require('express')
-const app = express()
+const express = require('express');
+const{createServer} = require('http');
+const {Server} = require('socket.io')
+
+const app = express();
+const server = createServer(app);
+const io = new Server(server);
 
 const bodyParser = require('body-parser');
 const sequelize = require('./util/database')
@@ -13,6 +18,20 @@ const GroupUser = require('./models/groupUser');
 
 const userRoutes = require('./routes/user');
 const chatRoutes = require('./routes/chat');
+
+io.on('connection',socket => {
+    console.log('a user connected',socket.id);
+
+    socket.on('chatMessage', (data) => {
+        io.emit('receive',data);
+    });
+
+    
+    /*socket.on('disconnect',()=>{
+        console.log('user disconnected');
+    })*/
+})
+
 
 
 app.use(bodyParser.urlencoded({extended:false})); 
@@ -36,7 +55,9 @@ async function initiate(){
         .sync()
         //.sync({force:true})
         .then(result => {
-            app.listen(process.env.PORT);
+            server.listen(process.env.PORT,()=>{
+                console.log('server running at '+process.env.WEBSITE);
+            });
         })
     }catch(err){ 
             console.log(err);

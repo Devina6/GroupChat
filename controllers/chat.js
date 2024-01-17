@@ -63,7 +63,7 @@ exports.postMessage = async(req,res,next) => {
         })
         let group=[]
         group.push(generateGroupToken(groupid))
-        res.json({group:group});
+        res.json({group:group,id:result.id});
     }catch(err){
         console.log("Message storing error: "+err)
     }
@@ -93,29 +93,28 @@ exports.newMember = async(req,res,next) =>{
 exports.getAllMessages = async (req,res,next) =>{
     const page = req.query.page;
     const chatPerPage = 5
-    let userid = req.user.id;
+    let user = req.user;
     let groupid = req.group
     try{ 
         const group = await GroupUser.findAll({
-            where:{userId:userid,groupId:groupid},
+            where:{userId:user.id,groupId:groupid},
         })
         if(group){
             const { count, rows } = await Message.findAndCountAll({
                 where: { groupId: groupid },
-                attributes: ['message'],
+                attributes: ['message',
+                    [sequelize.literal('`User`.`firstName`'), 'name'],
+                ],
                 include: [{
                         model: User,
-                        attributes:['firstName'],
+                        attributes:[],
                 }],
                 offset: (page - 1) * chatPerPage,
                 limit: chatPerPage,
                 order: [['createdAt', 'DESC']],
+                raw:true
             });
-            const name = await User.findAll({
-                where:{id:userid},
-                attributes:['firstName']
-            })
-            let username = name[0].dataValues.firstName;
+            let username = user.firstName;
             if(rows.length>0){
                 res.json({
                     pass:true,
@@ -186,4 +185,42 @@ exports.userList = async(req,res,next) => {
     }catch(err){
         console.log("Getting users error: "+err)
     }
+}
+
+exports.latestMessage = async(req,res,next) =>{
+    let user = req.user;
+    let groupid = req.group;
+    const group1 = jwt.verify(req.body.groupToken,process.env.GROUP_TOKEN_SECRET);
+    const group2 = jwt.verify(req.body.data,process.env.GROUP_TOKEN_SECRET);
+    if(group1.groupId===group2.groupId){
+        try{
+            const latest = await Message.findOne({
+                where: { groupId: groupid },
+                attributes: ['message',
+                    [sequelize.literal('`User`.`firstName`'), 'name'],
+                ],
+                include: [{
+                        model: User,
+                        attributes:[],
+                }],
+                order: [['createdAt', 'DESC']],
+            raw:true
+            })
+            
+            let username = user.firstName;
+            if(latest) {
+                res.json({
+                    pass:true,
+                    messages:latest,
+                    username:username,
+                    result:"message retrived"
+                })
+            }
+        }catch(err){
+            console.log('latest message error: '+err)
+        }
+    }else{
+        console.log('user group different')
+    }
+    
 }
