@@ -27,3 +27,6 @@
 18. Connect aws iam user and necessary bucket to store user images
 19. handle to upload either or both image and message, and send to the backend while handling the image by multer middleware
 20. store the image in the s3 bucket and organise code to retrieve image or code from aws bucket or database when requested to send to frontend to display them in the chat-display
+21. In termial install
+->npm install cron
+22. Archive or move all one week old messages from Message to Archive table everyday at midnight 

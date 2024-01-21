@@ -16,6 +16,9 @@ const Message = require('./models/message');
 const Group = require('./models/group');
 const GroupUser = require('./models/groupUser');
 
+const cronService = require('./services/cron');
+cronService.job.start();
+
 const userRoutes = require('./routes/user');
 const chatRoutes = require('./routes/chat');
 
@@ -26,13 +29,10 @@ io.on('connection',socket => {
         io.emit('receive',data);
     });
 
-    
     /*socket.on('disconnect',()=>{
         console.log('user disconnected');
     })*/
 })
-
-
 
 app.use(bodyParser.urlencoded({extended:false})); 
 app.use(bodyParser.json());
