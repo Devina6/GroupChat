@@ -6,10 +6,15 @@ document.addEventListener('DOMContentLoaded', async() => {
     const groupBtn = document.querySelector('#groupBtn')
     if (sendBtn) {
         sendBtn.addEventListener('click',sendMessage);
-    }
+        }
     if(groupBtn){
         groupBtn.addEventListener('click',newGroup);
     }
+    let imageFile = document.getElementById('file');
+    let trigger = document.getElementById('triggerfile');
+        trigger.addEventListener('click',function () {
+            imageFile.click();
+        })  
     try {
         let result = await axios.get('/chat/groups', { headers: { "userAuthorization": userToken } });
         let groupParent = document.getElementById("groups");
@@ -32,9 +37,7 @@ document.addEventListener('DOMContentLoaded', async() => {
             buttons.push(button);
             groupParent.appendChild(newBtn);
             let lineBreak1 = document.createElement('br');
-            groupParent.appendChild(lineBreak1);
-            
-            
+            groupParent.appendChild(lineBreak1);   
         }
         groupButtons(buttons);
       } catch (err) {
@@ -59,14 +62,40 @@ async function groupChats(group){
     let groupToken = group[0]
     localStorage.setItem('groupToken', groupToken)
     try{
-        let sendBtn = document.getElementById("sendBtn")
-        let messageText = document.getElementById("message")
-        sendBtn.disabled = false;
-        messageText.disabled = false;
         let parent = document.getElementById("chat-display")
         while (parent.firstChild) {
             parent.removeChild(parent.firstChild);
         }
+
+        const { data: { messages,username,pass,result, ...pageData } }= await axios.get(`/chat/allMessage?page=${page}`,{headers:{"userAuthorization":userToken,"groupAuthorization":groupToken}})
+        if(pass){
+            let groupPresent = document.getElementById("groupName");
+            
+            groupPresent.textContent = group[1];
+            if(messages){
+                document.getElementById("message").disabled = false;
+                document.getElementById("sendBtn").disabled = false;
+                let latest = false;
+                for(var i=0;i<messages.length;i++){
+                    displayMessages(messages[i],username,latest);
+                }
+                previousData(pageData);
+            }else{
+                const previousBtn = document.querySelector('#previousBtn');
+                previousBtn.disabled = true;
+            }
+        }else{
+            alert(result)
+        }
+
+        let sendBtn = document.getElementById("sendBtn")
+        sendBtn.disabled = false;
+        let messageText = document.getElementById("message");
+        messageText.disabled = false;
+        let trigger = document.getElementById('triggerfile');
+        trigger.disabled = false;
+         
+
         let userList = document.getElementById("users")
         if(group[2]){
             userList.style.visibility = 'visible';
@@ -90,25 +119,7 @@ async function groupChats(group){
         }else{
             userList.style.visibility = 'hidden';
         }
-        const { data: { messages,username,pass,result, ...pageData } }= await axios.get(`/chat/allMessage?page=${page}`,{headers:{"userAuthorization":userToken,"groupAuthorization":groupToken}})
-        if(pass){
-            let groupPresent = document.getElementById("groupName");
-            groupPresent.textContent = group[1];
-            if(messages){
-                document.getElementById("message").disabled = false;
-                document.getElementById("sendBtn").disabled = false;
-                let latest = false;
-                for(var i=0;i<messages.length;i++){
-                    displayMessages(messages[i],username,latest);
-                }
-                previousData(pageData);
-            }else{
-                const previousBtn = document.querySelector('#previousBtn');
-                previousBtn.disabled = true;
-            }
-        }else{
-            alert(result)
-        }
+
         socket.emit('group token',groupToken)
     }catch(err){
         console.log("all messages getting error: "+err)
@@ -166,17 +177,26 @@ async function displayMessages(message,username,latest){
         
 }    
 
+function messageCollection(){
+    
+    
+    
+}
 async function sendMessage(e){
     e.preventDefault();
-    let groupToken = localStorage.getItem('groupToken');
-    let obj = {
-        message:document.getElementById("message").value
+    let groupToken = localStorage.getItem('groupToken');  
+    let message = document.getElementById('message').value;
+    let image = document.getElementById('file')
+    let formData = new FormData();
+    if(image.files.length>0){
+        formData.append('image',image.files[0])
+    }
+    formData.append('message',message)
+    if(message){
+        document.getElementById("message").value = '';
     }
     try{
-        if(obj.message){
-            document.getElementById("message").value = '';
-        }
-        const result = await axios.post('/chat/sendMessage',obj,{headers:{"userAuthorization":userToken,"groupAuthorization":groupToken}})
+        const result = await axios.post('/chat/sendMessage',formData,{headers:{"userAuthorization":userToken,"groupAuthorization":groupToken}})
         const msgId = result.data.id;
         socket.emit('chatMessage',(groupToken));
     }catch(err){
@@ -185,6 +205,24 @@ async function sendMessage(e){
 }
 socket.on('receive', async(data)=>{
     try{
+        /* for receiving image and displaying image
+        const response = await axios.get('/.....',{.....})
+        const data = await response.json();
+        const image = data.image;
+        document.getElementById('displayImage').src = `data:image/jpeg;base64,${image}`;*/
+
+        /*const preview = document.getElementById('preview');
+            const file = image.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                  preview.src = e.target.result;
+                  preview.style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+              } else {
+                preview.style.display = 'none';
+              }*/
         let groupToken = localStorage.getItem('groupToken');
         let obj = {
             groupToken:groupToken,
@@ -229,3 +267,4 @@ async function newGroup(e){
         console.log("New Group creation error: "+err)
     }
 }
+

@@ -8,7 +8,22 @@ const jwt = require('jsonwebtoken');
 const sequelize = require('../util/database');
 const Sequelize = require('sequelize');
 const { Op } = require('sequelize');
+const { S3Client, PutObjectCommand, GetObjectCommand } = require('@aws-sdk/client-s3');
 
+function s3Client(){
+    const accessKeyId = process.env.AWS_ACCESS_KEY_ID
+    const secretAccessKey = process.env.AWS_SECRET_ACCESS_KEY
+    const region = process.env.S3_REGION
+  
+    const s3client = new S3Client({
+        credentials:{
+          accessKeyId,
+          secretAccessKey
+        },
+        region
+      });
+      return s3client;
+}
 function generateGroupToken(id){
     return jwt.sign({groupId:id},process.env.GROUP_TOKEN_SECRET)
 }
@@ -52,22 +67,88 @@ exports.getChat = (req, res, next) => {
     res.sendFile('chat.html', { root: 'views' });
 }
 exports.postMessage = async(req,res,next) => {
-    let message = req.body.message;
     let userid = req.user.id;
     let groupid = req.group;
-    try{
-        const result = await Message.create({
-            message:message,
-            userId:userid,
-            groupId:groupid
-        })
-        let group=[]
-        group.push(generateGroupToken(groupid))
-        res.json({group:group,id:result.id});
-    }catch(err){
-        console.log("Message storing error: "+err)
-    }
+    let message = req.body.message;
+    let image = req.file;
+    /*if(req.file){
+        const imageBuffer = req.file.buffer;
+        const filename = await uploadToS3(imageBuffer,req.file.originalname,req.file.mimetype);
+        if(filename){
+            try{
+                const msgresult = await Message.create({
+                    message:message,
+                    userId:userid,
+                    groupId:groupid,
+                    isImage:false
+                })
+                const imgresult = await Message.create({
+                    message:filename,
+                    userId:userid,
+                    groupId:groupid,
+                    isImage:true
+                })
+                let group=[]
+                group.push(generateGroupToken(groupid))
+                res.json({group:group,id:msgresult.id});
+            }catch(err){
+                console.log("Message and image storing error: "+err)
+            }
+        }else{
+            console.log('image upload error')
+        } 
+    }else*/{
+        try{
+            const result = await Message.create({
+                message:message,
+                userId:userid,
+                groupId:groupid
+            })
+            let group=[]
+            group.push(generateGroupToken(groupid))
+            res.json({group:group,id:result.id});
+        }catch(err){
+            console.log("Message storing error: "+err)
+        }
+    }  
 }
+
+async function uploadToS3(data,filename,content){
+    const Bucket = process.env.S3_BUCKET
+    let client = s3Client();
+    const command = new PutObjectCommand({
+        Bucket,
+        Key:filename,
+        Body:data,
+        ContentType:content,
+        ACL:'public-read'
+      })
+    try{
+      const s3response = await client.send(command)
+      return filename;
+    }
+    catch(err){
+      console.log('upload to s3 bucket error',err)
+    }
+  }
+
+async function downloadFromS3(filename){
+    let client = s3Client();
+    const Bucket = process.env.S3_BUCKET
+    const command = new GetObjectCommand({
+        Bucket,
+        key:filename
+    })
+    try{
+        const s3response = await client.getObject(command)
+        const file = Buffer.from(s3response.Body).toString('base64');
+        return file;
+      }
+      catch(err){
+        console.log('download from s3 bucket error',err)
+      }
+}
+
 exports.newMember = async(req,res,next) =>{
     let member = req.body;
     let groupid = req.group;
@@ -127,12 +208,8 @@ exports.getAllMessages = async (req,res,next) =>{
                     result:"messages retrived"
                 })
             }else{
-                const groupName = await Group.findAll({
-                    where:{id:groupid},
-                    attributes:['name']
-                })
-                //let name = groupName[0].dataValues.name;
-                res.json({pass:true,groupname:name,result:"Send messages in group"})
+                const group = await Group.findByPk(groupid,{attributes:['name']})
+                res.json({pass:true,groupname:group.name,result:"Send messages in group"})
             }
         }else{
             res.json({pass:false,result:"You must join the group first"})

@@ -28,9 +28,11 @@
                             <div id="chat-display">
                             </div>
                             <br>
-                            <form method="post">
-                                <div class="d-flex justify-content-around" >
-                                    <input type="text" class="form-control" id="message" placeholder="Type your message..." require disabled>
+                            <form method="post" enctype="multipart/form-data">
+                                <input type="file" id="file" accept=".jpg,.gif,.png" style="visibility: hidden;" >
+                                <div class="d-flex justify-content-between">
+                                    <img src="/images/image.png" alt="share image" id="triggerfile" width="40" height="40" disabled >
+                                    <input type="text" class="form-control form-control-sm" id="message" placeholder="Type your message..." disabled >
                                     <input type="submit" class="btn btn-success btn-lg " value="Send" id="sendBtn" disabled>
                                 </div>
                             </form>
@@ -44,6 +46,7 @@
                         </div>
                     </div>
                 </div>
+                <!--<img id="preview" alt="Preview" style="max-width: 300px; max-height: 300px; display: none;">-->
             </div>
         </div>
         <!-- Modal -->

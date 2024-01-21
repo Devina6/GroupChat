@@ -12,6 +12,10 @@ const Message = sequelize.define('message',{
     message:{
         type:Sequelize.STRING,
         allowNull:false
+    },
+    isImage:{
+        type : Sequelize.BOOLEAN , 
+        defaultValue : false
     }
 })
 

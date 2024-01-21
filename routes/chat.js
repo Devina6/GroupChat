@@ -3,9 +3,11 @@ const router = express.Router();
 
 const chatController = require('../controllers/chat');
 const authentication = require('../middleware/auth');
+const multerMiddleware = require('../middleware/multer');
+const upload = multerMiddleware.multer.single('image');
 
 router.get('',chatController.getChat);
-router.post('/sendMessage',authentication.userAuthenticate,authentication.groupAuthenticate,chatController.postMessage);
+router.post('/sendMessage',authentication.userAuthenticate,authentication.groupAuthenticate,upload,chatController.postMessage);
 router.get('/allMessage',authentication.userAuthenticate,authentication.groupAuthenticate,chatController.getAllMessages);
 router.get('/groups',authentication.userAuthenticate,chatController.getGroups);
 router.post('/newGroup',authentication.userAuthenticate,chatController.newGroup);
