@@ -21,3 +21,9 @@
 14. display all groups the particular user is part of and allow to read and write messages only to those groups
 15. allow user to create custom groups 
 16. make group creator user as admin and allow authority to add members to group using user's email
+17. In terminal install 
+-> npm install @aws-sdk/client-s3
+-> npm install multer 
+18. Connect aws iam user and necessary bucket to store user images
+19. handle to upload either or both image and message, and send to the backend while handling the image by multer middleware
+20. store the image in the s3 bucket and organise code to retrieve image or code from aws bucket or database when requested to send to frontend to display them in the chat-display
